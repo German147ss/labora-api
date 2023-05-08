@@ -6,12 +6,14 @@ import (
 	"log"
 )
 
+// DbConnection contains a pointer to the SQL database.
 type DbConnection struct {
 	*sql.DB
 }
 
 var Db DbConnection
 
+// UpDb connects to the database.
 func UpDb() {
 	err := Connect_BD()
 	if err != nil {
@@ -19,14 +21,14 @@ func UpDb() {
 	}
 }
 
+// PingOrDie pings the database and logs a fatal error if it can't be reached.
 func (db *DbConnection) PingOrDie() {
 	if err := db.Ping(); err != nil {
-		log.Fatalf("can't reach databse, error: %v", err)
+		log.Fatalf("can't reach database, error: %v", err)
 	}
 }
 
-//psql -h localhost -p 5431 -U alfred -d items
-
+// Constants used to connect to the database.
 const (
 	host        = "localhost"
 	port        = "5431"
@@ -37,6 +39,7 @@ const (
 
 var dbConn *sql.DB
 
+// Connect_BD connects to the database and returns an error if the connection fails.
 func Connect_BD() error {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, rolName, rolPassword, dbName)
 	var err error

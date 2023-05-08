@@ -31,25 +31,39 @@ func GetItems() ([]models.Item, error) {
 	return items, nil
 }
 
-// Obtener la lista de elementos paginada
-func GetPaginatedItems(pageIndex, itemsPerPage int) ([]models.Item, error) {
+func GetPaginatedItems(pageIndex, itemsPerPage int) ([]models.Item, int, error) {
+	//log params
+	fmt.Printf("pageIndex: %d, itemsPerPage: %d\n", pageIndex, itemsPerPage)
 	// Calcular el índice inicial y el límite de elementos en función de la página actual y los elementos por página
 	startIndex := (pageIndex - 1) * itemsPerPage
-	endIndex := startIndex + itemsPerPage
+
+	// Obtener el número total de filas en la tabla items
+	var count int
+	err := Db.QueryRow("SELECT COUNT(*) FROM items").Scan(&count)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	// Obtener la lista de elementos correspondientes a la página actual
+	rows, err := Db.Query("SELECT * FROM items ORDER BY id OFFSET $1 LIMIT $2", startIndex, itemsPerPage)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
 	var newListItems []models.Item
-	if startIndex < len(models.Items) {
-		if endIndex > len(models.Items) {
-			newListItems = models.Items[startIndex:]
-		} else {
-			newListItems = models.Items[startIndex:endIndex]
+	for rows.Next() {
+		var item models.Item
+		err := rows.Scan(&item.ID, &item.CustomerName, &item.OrderDate, &item.Product, &item.Quantity, &item.Price)
+		if err != nil {
+			return nil, 0, err
 		}
+		newListItems = append(newListItems, item)
 	}
 
 	if len(newListItems) == 0 {
-		return nil, fmt.Errorf("No items found for page %d", pageIndex)
+		return nil, 0, fmt.Errorf("No items found for page %d", pageIndex)
 	}
 
-	return newListItems, nil
+	return newListItems, count, nil
 }

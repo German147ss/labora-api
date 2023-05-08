@@ -60,14 +60,14 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Obtener la lista de elementos paginada
-	newListItems, err := services.GetPaginatedItems(pageIndex, itemsPerPageInt)
+	newListItems, count, err := services.GetPaginatedItems(pageIndex, itemsPerPageInt)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Calcular el número total de páginas necesarias para mostrar todos los elementos
-	totalPages := int(math.Ceil(float64(len(models.Items)) / float64(itemsPerPageInt)))
+	totalPages := int(math.Ceil(float64(count) / float64(itemsPerPageInt)))
 
 	// Crear un mapa que contiene información sobre la paginación
 	paginationInfo := map[string]interface{}{
