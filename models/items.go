@@ -3,6 +3,13 @@ package models
 type Item struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
+
+	//new fields
+	CustomerName string `json:"customerName"`
+	OrderDate    string `json:"orderDate"`
+	Product      string `json:"product"`
+	Quantity     int    `json:"quantity"`
+	Price        int    `json:"price"`
 }
 
 var Items []Item = []Item{

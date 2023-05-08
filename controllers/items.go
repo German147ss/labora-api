@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"labora-api/models"
+	"labora-api/services"
 	"math"
 	"net/http"
 	"strconv"
@@ -12,15 +13,34 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func ObtenerItems(response http.ResponseWriter, _ *http.Request) {
-	// creamos una estructura para representar nuestros datos
-
-	jsonData, _ := json.Marshal(models.Items)
-	response.WriteHeader(http.StatusOK)
-	response.Write([]byte(jsonData))
+func Json(response http.ResponseWriter, status int, data interface{}) {
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		fmt.Errorf("error while mashalling object %v, trace: %+v", data, err)
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	response.Header().Set("Content-Type", "application/json")
+	response.WriteHeader(status)
+	_, err = response.Write(bytes)
+	if err != nil {
+		fmt.Errorf("error while writting bytes to response writer: %+v", err)
+	}
 }
 
-func GetItems(w http.ResponseWriter, r *http.Request) {
+func ObtenerItems(response http.ResponseWriter, _ *http.Request) {
+	items, err := services.GetItems()
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Write([]byte("Error al obtener los items"))
+		return
+	}
+
+	Json(response, http.StatusOK, items)
+}
+
+// Manejador de solicitudes HTTP GET para obtener la lista de elementos paginada
+func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 	// Establecer el tipo de contenido de la respuesta HTTP como "application/json"
 	w.Header().Set("Content-Type", "application/json")
 
@@ -39,18 +59,11 @@ func GetItems(w http.ResponseWriter, r *http.Request) {
 		itemsPerPageInt = 3
 	}
 
-	// Calcular el índice inicial y el límite de elementos en función de la página actual y los elementos por página
-	startIndex := (pageIndex - 1) * itemsPerPageInt
-	endIndex := startIndex + itemsPerPageInt
-
-	// Obtener la lista de elementos correspondientes a la página actual
-	var newListItems []models.Item
-	if startIndex < len(models.Items) {
-		if endIndex > len(models.Items) {
-			newListItems = models.Items[startIndex:]
-		} else {
-			newListItems = models.Items[startIndex:endIndex]
-		}
+	// Obtener la lista de elementos paginada
+	newListItems, err := services.GetPaginatedItems(pageIndex, itemsPerPageInt)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	// Calcular el número total de páginas necesarias para mostrar todos los elementos
