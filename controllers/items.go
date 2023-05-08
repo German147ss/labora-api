@@ -9,22 +9,26 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
+// Json convierte un objeto en formato JSON y lo escribe en el responseWriter con el status correspondiente.
 func Json(response http.ResponseWriter, status int, data interface{}) {
-	bytes, err := json.Marshal(data)
+	bytes, err := json.Marshal(data) // Convierte el objeto a formato JSON.
 	if err != nil {
-		fmt.Errorf("error while mashalling object %v, trace: %+v", data, err)
+		// Si hay un error, se escribe un mensaje de error en el log y se devuelve un error 500 al cliente.
+		fmt.Errorf("error while marshalling object %v, trace: %+v", data, err)
 		response.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(status)
-	_, err = response.Write(bytes)
+	response.Header().Set("Content-Type", "application/json") // Se establece el tipo de contenido en la cabecera de la respuesta.
+	response.WriteHeader(status)                              // Se establece el status de la respuesta.
+	_, err = response.Write(bytes)                            // Se escriben los bytes en el responseWriter.
 	if err != nil {
-		fmt.Errorf("error while writting bytes to response writer: %+v", err)
+		// Si hay un error, se escribe un mensaje de error en el log.
+		fmt.Errorf("error while writing bytes to response writer: %+v", err)
 	}
 }
 
@@ -90,42 +94,46 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-func EditarItem(response http.ResponseWriter, request *http.Request) {
+func EditarItemHandler(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	idStr := vars["id"]
-	// Convertir el ID de string a int
 
+	// Convertir el ID de string a int
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		// Manejar el error de la conversión
 		response.WriteHeader(http.StatusBadRequest)
 		response.Write([]byte("El ID debe ser un número"))
 		return
 	}
-	//show id
-	fmt.Println(id)
 
-	var actualizacion models.Item
-	//show request.body with struct names as object
-
-	err = json.NewDecoder(request.Body).Decode(&actualizacion)
+	// Leer el item a actualizar del body de la solicitud
+	var itemToUpdate models.Item
+	err = json.NewDecoder(request.Body).Decode(&itemToUpdate)
 	if err != nil {
 		response.WriteHeader(http.StatusBadRequest)
 		response.Write([]byte("Error al procesar la solicitud"))
 		return
 	}
 
-	for i, item := range models.Items {
-		if item.ID == id {
-			models.Items[i].Name = actualizacion.Name
-			response.WriteHeader(http.StatusOK)
-			json.NewEncoder(response).Encode(models.Items[i])
-			return
-		}
+	// Parsear la fecha en el formato deseado
+	t, err := time.Parse(time.RFC3339, itemToUpdate.OrderDate)
+	if err != nil {
+		response.WriteHeader(http.StatusBadRequest)
+		response.Write([]byte("La fecha debe estar en formato ISO 8601"))
+		return
+	}
+	itemToUpdate.OrderDate = t.Format("2006-01-02")
+
+	// Actualizar el item en la base de datos
+	updatedItem, err := services.UpdateItemByID(id, itemToUpdate)
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		response.Write([]byte("Error al actualizar el item"))
+		return
 	}
 
-	response.WriteHeader(http.StatusNotFound)
-	response.Write([]byte("No se encontró el elemento con ID " + idStr))
+	// Escribir el item actualizado en la respuesta
+	Json(response, http.StatusOK, updatedItem)
 }
 
 func BuscarID(response http.ResponseWriter, request *http.Request) {

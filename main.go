@@ -18,7 +18,7 @@ func main() {
 
 	router.HandleFunc("/items/{id}", controllers.BuscarID).Methods("GET")
 	router.HandleFunc("/items", controllers.CrearItem).Methods("POST")
-	router.HandleFunc("/items/{id}", controllers.UpdateItem).Methods("PUT")
+	router.HandleFunc("/items/{id}", controllers.EditarItemHandler).Methods("PUT")
 	router.HandleFunc("/items/{id}", controllers.DeleteItem).Methods("DELETE")
 	router.HandleFunc("/items/search/name", controllers.GetItemByName).Methods("GET")
 

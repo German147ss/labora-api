@@ -6,14 +6,14 @@ import (
 	"log"
 )
 
-// DbConnection contains a pointer to the SQL database.
+// DbConnection contiene un puntero a la base de datos SQL.
 type DbConnection struct {
 	*sql.DB
 }
 
 var Db DbConnection
 
-// UpDb connects to the database.
+// UpDb conecta con la base de datos.
 func UpDb() {
 	err := Connect_BD()
 	if err != nil {
@@ -21,14 +21,14 @@ func UpDb() {
 	}
 }
 
-// PingOrDie pings the database and logs a fatal error if it can't be reached.
+// PingOrDie envía un ping a la base de datos y si no se puede alcanzar, registra un error fatal.
 func (db *DbConnection) PingOrDie() {
 	if err := db.Ping(); err != nil {
-		log.Fatalf("can't reach database, error: %v", err)
+		log.Fatalf("no se puede alcanzar la base de datos, error: %v", err)
 	}
 }
 
-// Constants used to connect to the database.
+// Constantes utilizadas para conectarse a la base de datos.
 const (
 	host        = "localhost"
 	port        = "5431"
@@ -39,7 +39,7 @@ const (
 
 var dbConn *sql.DB
 
-// Connect_BD connects to the database and returns an error if the connection fails.
+// Connect_BD conecta con la base de datos y devuelve un error si falla la conexión.
 func Connect_BD() error {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, rolName, rolPassword, dbName)
 	var err error
@@ -47,7 +47,7 @@ func Connect_BD() error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Successful connection to the database:", dbConn)
+	fmt.Println("Conexión exitosa a la base de datos:", dbConn)
 	Db = DbConnection{dbConn}
 	Db.PingOrDie()
 	return err

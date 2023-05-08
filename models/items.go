@@ -1,17 +1,19 @@
 package models
 
+// Estructura para representar un ítem
 type Item struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID   int    `json:"id"`   // Identificador del ítem
+	Name string `json:"name"` // Nombre del ítem
 
-	//new fields
-	CustomerName string `json:"customerName"`
-	OrderDate    string `json:"orderDate"`
-	Product      string `json:"product"`
-	Quantity     int    `json:"quantity"`
-	Price        int    `json:"price"`
+	// Nuevos campos
+	CustomerName string `json:"customerName"` // Nombre del cliente que hizo el pedido
+	OrderDate    string `json:"orderDate"`    // Fecha en que se hizo el pedido
+	Product      string `json:"product"`      // Producto del pedido
+	Quantity     int    `json:"quantity"`     // Cantidad del producto en el pedido
+	Price        int    `json:"price"`        // Precio del producto en el pedido
 }
 
+// Lista de ítems, inicialmente vacía
 var Items []Item = []Item{
 	{
 		ID:   1,

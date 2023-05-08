@@ -5,6 +5,8 @@ import (
 	"labora-api/models"
 )
 
+// GetItems obtiene todos los items de la tabla 'items' de la base de datos.
+// Retorna una lista de struct 'models.Item' y un error en caso de que haya ocurrido alguno.
 func GetItems() ([]models.Item, error) {
 	items := make([]models.Item, 0)
 	rows, err := Db.Query("SELECT * FROM items")
@@ -14,6 +16,7 @@ func GetItems() ([]models.Item, error) {
 	}
 	defer rows.Close()
 
+	// Itera sobre cada fila en 'rows' y crea una instancia de 'models.Item' con los valores de cada columna.
 	for rows.Next() {
 		var item models.Item
 		err := rows.Scan(&item.ID, &item.CustomerName, &item.OrderDate, &item.Product, &item.Quantity, &item.Price)
@@ -66,4 +69,17 @@ func GetPaginatedItems(pageIndex, itemsPerPage int) ([]models.Item, int, error) 
 	}
 
 	return newListItems, count, nil
+}
+
+// UpdateItemByID actualiza un item en la base de datos a partir de su ID
+func UpdateItemByID(id int, item models.Item) (models.Item, error) {
+	var updatedItem models.Item
+	row := Db.QueryRow("UPDATE items SET customer_name = $1, order_date = $2, product = $3, quantity = $4, price = $5 WHERE id = $6 RETURNING *",
+		item.CustomerName, item.OrderDate, item.Product, item.Quantity, item.Price, id)
+	err := row.Scan(&updatedItem.ID, &updatedItem.CustomerName, &updatedItem.OrderDate, &updatedItem.Product, &updatedItem.Quantity, &updatedItem.Price)
+	if err != nil {
+		fmt.Println(err)
+		return updatedItem, err
+	}
+	return updatedItem, nil
 }
