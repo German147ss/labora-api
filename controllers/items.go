@@ -66,7 +66,7 @@ func GetItemsHandler(w http.ResponseWriter, r *http.Request) {
 	// Obtener la lista de elementos paginada
 	newListItems, count, err := services.GetPaginatedItems(pageIndex, itemsPerPageInt)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

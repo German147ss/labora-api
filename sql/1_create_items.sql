@@ -7,3 +7,6 @@ CREATE TABLE public.items
     quantity INTEGER NOT NULL CHECK(quantity > 0), 
     price NUMERIC NOT NULL CHECK(price >= 0)
 );
+
+-- create primary key
+ALTER TABLE public.items ADD CONSTRAINT items_pkey PRIMARY KEY (id);

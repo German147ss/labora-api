@@ -8,7 +8,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func StartServer(port string, router http.Handler) error {
+func StartServer(router http.Handler) error {
+	port := ":9000"
 	servidor := &http.Server{
 		Handler:      router,
 		Addr:         port,

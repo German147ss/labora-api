@@ -22,9 +22,8 @@ func main() {
 	router.HandleFunc("/items/{id}", controllers.DeleteItem).Methods("DELETE")
 	router.HandleFunc("/items/search/name", controllers.GetItemByName).Methods("GET")
 
-	services.Db.PingOrDie()
-	port := ":9000"
-	if err := config.StartServer(port, router); err != nil {
+	services.DataBasePAPA.PingOrDie()
+	if err := config.StartServer(router); err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
 
